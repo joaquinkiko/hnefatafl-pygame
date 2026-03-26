@@ -1,0 +1,7 @@
+# Normalize EOL for all files considered text by Git
+* text=auto eol=lf
+
+# Mark binary files for safety
+*.png binary
+*.wav binary
+*.ogg binary

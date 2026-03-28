@@ -3,6 +3,7 @@ import pygame
 from pygame import Surface
 from pygame.locals import *
 import sys
+from board import Board, Position
 
 # Window initialization constants
 WINDOW_SIZE: tuple = (640, 480)

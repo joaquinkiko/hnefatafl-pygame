@@ -76,41 +76,14 @@ def main():
         # Draw window elements
         
         # Draw board
-        draw_board(window, board, textures, texture_sizes)
-        draw_pieces(window, board, textures, texture_sizes)
+        draw_board(window, board, textures, gui_positions)
+        draw_pieces(window, board, textures, gui_positions)
 
         # Update the window
         pygame.display.update()
 
         # Slow down simulation
         clock.tick(FRAMES_PER_SECOND)
-
-def draw_board(window: Surface,
-               board: Board,
-               textures: dict[str, Surface],
-               texture_sizes: dict[str, tuple[int, int]]
-               ) -> None:
-    # Use "s_empty" texture for base space sizing
-    space_size: tuple[int ,int] = texture_sizes["s_empty"]
-    # Get offset so that board is centered
-    offset: tuple[int, int] = (
-         (window.get_width() - (board.width * space_size[0])) / 2,
-         (window.get_height() - (board.height * space_size[1])) / 2
-        )
-    # Draw grid
-    for x in range(board.width):
-            for y in range(board.height):
-                draw_position: tuple[int, int] = (
-                        x * space_size[0] + offset[0],
-                        y * space_size[1] + offset[1]
-                    )
-                board_position: Position = Position(x, y)
-                if board.is_escape(board_position):
-                    window.blit(textures["s_escape"], draw_position)
-                elif board.is_restricted(board_position):
-                    window.blit(textures["s_throne"], draw_position)
-                else:
-                    window.blit(textures["s_empty"], draw_position)
 
 def get_space_rects(window: Surface,
                     board: Board,
@@ -135,34 +108,36 @@ def get_space_rects(window: Surface,
                 Position(x, y)
             ])
     return output
-            
-                
+
+def draw_board(window: Surface,
+               board: Board,
+               textures: dict[str, Surface],
+               gui_positions: list[tuple[pygame.Rect, Position]]
+               ) -> None:
+    for gui_position in gui_positions:
+        draw_position: tuple[int, int] = gui_position[0].topleft
+        board_position: Position = gui_position[1]
+        if board.is_escape(board_position):
+            window.blit(textures["s_escape"], draw_position)
+        elif board.is_restricted(board_position):
+            window.blit(textures["s_throne"], draw_position)
+        else:
+            window.blit(textures["s_empty"], draw_position)
 
 def draw_pieces(window: Surface,
                board: Board,
                textures: dict[str, Surface],
-               texture_sizes: dict[str, tuple[int, int]]
+               gui_positions: list[tuple[pygame.Rect, Position]]
                ) -> None:
-    # Use "s_empty" texture for base space sizing
-    space_size: tuple[int ,int] = texture_sizes["s_empty"]
-    # Get offset so that board is centered
-    offset: tuple[int, int] = (
-         (window.get_width() - (board.width * space_size[0])) / 2,
-         (window.get_height() - (board.height * space_size[1])) / 2
-        )
-    # Draw grid
-    for x in range(board.width):
-            for y in range(board.height):
-                draw_position: tuple[int, int] = (
-                        x * space_size[0] + offset[0],
-                        y * space_size[1] + offset[1]
-                    )
-                match board.get_piece_at(Position(x, y)):
-                    case "attacker":
-                        window.blit(textures["p_attacker"], draw_position)
-                    case "defender":
-                        window.blit(textures["p_defender"], draw_position)
-                    case "king":
-                        window.blit(textures["p_king"], draw_position)
+    for gui_position in gui_positions:
+        draw_position: tuple[int, int] = gui_position[0].topleft
+        board_position: Position = gui_position[1]
+        match board.get_piece_at(board_position):
+            case "attacker":
+                window.blit(textures["p_attacker"], draw_position)
+            case "defender":
+                window.blit(textures["p_defender"], draw_position)
+            case "king":
+                window.blit(textures["p_king"], draw_position)
 
 if __name__ == "__main__": main()

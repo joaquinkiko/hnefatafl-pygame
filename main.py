@@ -69,6 +69,7 @@ def main():
         
         # Draw board
         draw_board(window, board, textures, texture_sizes)
+        draw_pieces(window, board, textures, texture_sizes)
 
         # Update the window
         pygame.display.update()
@@ -96,5 +97,31 @@ def draw_board(window: Surface,
                         y * texture_sizes["grid"][1] + offset[1]
                     )
                     )
+
+def draw_pieces(window: Surface,
+               board: Board,
+               textures: dict[str, Surface],
+               texture_sizes: dict[str, tuple[int, int]]
+               ) -> None:
+    # Get offset so that board is centered
+    offset: tuple[int, int] = (
+         (window.get_width() - (board.width * texture_sizes["grid"][0])) / 2,
+         (window.get_height() - (board.height * texture_sizes["grid"][1])) / 2
+        )
+    # Draw grid
+    for x in range(board.width):
+            for y in range(board.height):
+                # Get draw position based off of grid size
+                draw_position: tuple[int, int] = (
+                        x * texture_sizes["grid"][0] + offset[0],
+                        y * texture_sizes["grid"][1] + offset[1]
+                    )
+                match board.get_piece_at(Position(x, y)):
+                    case "attacker":
+                        window.blit(textures["p_attacker"], draw_position)
+                    case "defender":
+                        window.blit(textures["p_defender"], draw_position)
+                    case "king":
+                        window.blit(textures["p_king"], draw_position)
 
 if __name__ == "__main__": main()

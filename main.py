@@ -36,10 +36,10 @@ def main():
 
     # Load assets
     textures: dict[str, Surface] = {
-        "grid": pygame.image.load(ASSET_GRID),
         "p_king": pygame.image.load(ASSET_KING),
         "p_defender": pygame.image.load(ASSET_DEFENDER),
         "p_attacker": pygame.image.load(ASSET_ATTACKER),
+        "s_empty": pygame.image.load(ASSET_GRID),
         "s_escape": pygame.image.load(ASSET_ESCAPE),
         "s_throne": pygame.image.load(ASSET_THRONE),
     }
@@ -82,8 +82,8 @@ def draw_board(window: Surface,
                textures: dict[str, Surface],
                texture_sizes: dict[str, tuple[int, int]]
                ) -> None:
-    # Use "grid" texture for base space sizing
-    space_size: tuple[int ,int] = texture_sizes["grid"]
+    # Use "s_empty" texture for base space sizing
+    space_size: tuple[int ,int] = texture_sizes["s_empty"]
     # Get offset so that board is centered
     offset: tuple[int, int] = (
          (window.get_width() - (board.width * space_size[0])) / 2,
@@ -92,7 +92,6 @@ def draw_board(window: Surface,
     # Draw grid
     for x in range(board.width):
             for y in range(board.height):
-                # Get draw position based off "grid" texture size
                 draw_position: tuple[int, int] = (
                         x * space_size[0] + offset[0],
                         y * space_size[1] + offset[1]
@@ -103,7 +102,7 @@ def draw_board(window: Surface,
                 elif board.is_restricted(board_position):
                     window.blit(textures["s_throne"], draw_position)
                 else:
-                    window.blit(textures["grid"], draw_position)
+                    window.blit(textures["s_empty"], draw_position)
 
 
 def draw_pieces(window: Surface,
@@ -111,8 +110,8 @@ def draw_pieces(window: Surface,
                textures: dict[str, Surface],
                texture_sizes: dict[str, tuple[int, int]]
                ) -> None:
-    # Use "grid" texture for base space sizing
-    space_size: tuple[int ,int] = texture_sizes["grid"]
+    # Use "s_empty" texture for base space sizing
+    space_size: tuple[int ,int] = texture_sizes["s_empty"]
     # Get offset so that board is centered
     offset: tuple[int, int] = (
          (window.get_width() - (board.width * space_size[0])) / 2,

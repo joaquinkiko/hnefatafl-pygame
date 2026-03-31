@@ -33,6 +33,7 @@ def main():
     # Setup variables
     board: Board = Board()
     is_attacker_turn: bool = True # Attacker always starts
+    selected_piece: Position = None
 
     # Load assets
     textures: dict[str, Surface] = {
@@ -59,7 +60,30 @@ def main():
                         test_rect: pygame.Rect = gui_position[0]
                         if test_rect.collidepoint(event.pos):
                             click_position: Position = gui_position[1]
-                            # Do something...
+                            match board.get_piece_at(click_position):
+                                case "attacker":
+                                    if is_attacker_turn:
+                                        selected_piece = click_position
+                                    else:
+                                        selected_piece = None
+                                case "defender":
+                                    if not is_attacker_turn:
+                                        selected_piece = click_position
+                                    else:
+                                        selected_piece = None
+                                case "king":
+                                    if not is_attacker_turn:
+                                        selected_piece = click_position
+                                    else:
+                                        selected_piece = None
+                                case _:
+                                    # See if move can be made
+                                    if not selected_piece == None:
+                                        # Move piece if possible
+                                        if click_position in board.get_valid_moves(selected_piece):
+                                            board.move_piece(selected_piece, click_position)
+                                            is_attacker_turn = not is_attacker_turn
+                                        selected_piece = None
 
                 case pygame.KEYDOWN:
                     match event.key:

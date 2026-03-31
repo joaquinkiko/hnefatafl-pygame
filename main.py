@@ -18,6 +18,11 @@ BASE_DIR: str = __file__.removesuffix(__file__.split("/")[-1])
 ASSET_DIR: str = f"{BASE_DIR}assets/"
 # Asset paths
 ASSET_GRID: str = f"{ASSET_DIR}grid.png"
+ASSET_ATTACKER: str = f"{ASSET_DIR}p_attacker.png"
+ASSET_DEFENDER: str = f"{ASSET_DIR}p_defender.png"
+ASSET_KING: str = f"{ASSET_DIR}p_king.png"
+ASSET_ESCAPE: str = f"{ASSET_DIR}s_escape.png"
+ASSET_THRONE: str = f"{ASSET_DIR}s_throne.png"
 
 def main():
     # Initialize GUI
@@ -30,8 +35,18 @@ def main():
     is_attacker_turn: bool = True # Attacker always starts
 
     # Load assets
-    grid_texture: Surface = pygame.image.load(ASSET_GRID)
-    grid_texture_size: tuple[int, int] = grid_texture.get_size()
+    textures: dict[str, Surface] = {
+        "grid": pygame.image.load(ASSET_GRID),
+        "p_king": pygame.image.load(ASSET_KING),
+        "p_defender": pygame.image.load(ASSET_DEFENDER),
+        "p_attacker": pygame.image.load(ASSET_ATTACKER),
+        "s_escape": pygame.image.load(ASSET_ESCAPE),
+        "s_throne": pygame.image.load(ASSET_THRONE),
+    }
+    texture_sizes: dict[str, tuple[int, int]] = {}
+    for key in textures.keys():
+        texture_sizes[key] = textures[key].get_size()
+    
 
     # Main game loop
     while True:
@@ -53,7 +68,7 @@ def main():
         # Draw window elements
         
         # Draw board
-        draw_board(window, board, grid_texture, grid_texture_size)
+        draw_board(window, board, textures, texture_sizes)
 
         # Update the window
         pygame.display.update()
@@ -63,22 +78,22 @@ def main():
 
 def draw_board(window: Surface,
                board: Board,
-               texture: Surface,
-               texture_size: tuple[int, int]
+               textures: dict[str, Surface],
+               texture_sizes: dict[str, tuple[int, int]]
                ) -> None:
     # Get offset so that board is centered
     offset: tuple[int, int] = (
-         (window.get_width() - (board.width * texture_size[0])) / 2,
-         (window.get_height() - (board.height * texture_size[1])) / 2
+         (window.get_width() - (board.width * texture_sizes["grid"][0])) / 2,
+         (window.get_height() - (board.height * texture_sizes["grid"][1])) / 2
         )
     # Draw grid
     for x in range(board.width):
             for y in range(board.height):
                 window.blit(
-                    texture,
+                    textures["grid"],
                     (
-                        x * texture_size[0] + offset[0],
-                        y * texture_size[1] + offset[1]
+                        x * texture_sizes["grid"][0] + offset[0],
+                        y * texture_sizes["grid"][1] + offset[1]
                     )
                     )
 

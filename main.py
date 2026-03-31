@@ -82,39 +82,48 @@ def draw_board(window: Surface,
                textures: dict[str, Surface],
                texture_sizes: dict[str, tuple[int, int]]
                ) -> None:
+    # Use "grid" texture for base space sizing
+    space_size: tuple[int ,int] = texture_sizes["grid"]
     # Get offset so that board is centered
     offset: tuple[int, int] = (
-         (window.get_width() - (board.width * texture_sizes["grid"][0])) / 2,
-         (window.get_height() - (board.height * texture_sizes["grid"][1])) / 2
+         (window.get_width() - (board.width * space_size[0])) / 2,
+         (window.get_height() - (board.height * space_size[1])) / 2
         )
     # Draw grid
     for x in range(board.width):
             for y in range(board.height):
-                window.blit(
-                    textures["grid"],
-                    (
-                        x * texture_sizes["grid"][0] + offset[0],
-                        y * texture_sizes["grid"][1] + offset[1]
+                # Get draw position based off "grid" texture size
+                draw_position: tuple[int, int] = (
+                        x * space_size[0] + offset[0],
+                        y * space_size[1] + offset[1]
                     )
-                    )
+                board_position: Position = Position(x, y)
+                if board.is_escape(board_position):
+                    window.blit(textures["s_escape"], draw_position)
+                elif board.is_restricted(board_position):
+                    window.blit(textures["s_throne"], draw_position)
+                else:
+                    window.blit(textures["grid"], draw_position)
+
 
 def draw_pieces(window: Surface,
                board: Board,
                textures: dict[str, Surface],
                texture_sizes: dict[str, tuple[int, int]]
                ) -> None:
+    # Use "grid" texture for base space sizing
+    space_size: tuple[int ,int] = texture_sizes["grid"]
     # Get offset so that board is centered
     offset: tuple[int, int] = (
-         (window.get_width() - (board.width * texture_sizes["grid"][0])) / 2,
-         (window.get_height() - (board.height * texture_sizes["grid"][1])) / 2
+         (window.get_width() - (board.width * space_size[0])) / 2,
+         (window.get_height() - (board.height * space_size[1])) / 2
         )
     # Draw grid
     for x in range(board.width):
             for y in range(board.height):
-                # Get draw position based off of grid size
                 draw_position: tuple[int, int] = (
-                        x * texture_sizes["grid"][0] + offset[0],
-                        y * texture_sizes["grid"][1] + offset[1]
+                        x * space_size[0] + offset[0],
+                        y * space_size[1] + offset[1]
                     )
                 match board.get_piece_at(Position(x, y)):
                     case "attacker":

@@ -47,12 +47,20 @@ def main():
     for key in textures.keys():
         texture_sizes[key] = textures[key].get_size()
     
+    gui_positions: list[tuple[pygame.Rect, Position]] = get_space_rects(window, board, texture_sizes)
 
     # Main game loop
     while True:
         # Handle events
         for event in pygame.event.get():
             match event.type:
+                case pygame.MOUSEBUTTONDOWN:
+                    for gui_position in gui_positions:
+                        test_rect: pygame.Rect = gui_position[0]
+                        if test_rect.collidepoint(event.pos):
+                            click_position: Position = gui_position[1]
+                            # Do something...
+
                 case pygame.KEYDOWN:
                     match event.key:
                         case pygame.K_F11:
@@ -104,6 +112,31 @@ def draw_board(window: Surface,
                 else:
                     window.blit(textures["s_empty"], draw_position)
 
+def get_space_rects(window: Surface,
+                    board: Board,
+                    texture_sizes: dict[str, tuple[int, int]]
+                    ) -> list[tuple[pygame.Rect, Position]]:
+    output: list[tuple[pygame.Rect, Position]] = []
+    # Use "s_empty" texture for base space sizing
+    space_size: tuple[int ,int] = texture_sizes["s_empty"]
+    # Get offset so that board is centered
+    offset: tuple[int, int] = (
+         (window.get_width() - (board.width * space_size[0])) / 2,
+         (window.get_height() - (board.height * space_size[1])) / 2
+        )
+    for x in range(board.width):
+        for y in range(board.height):
+            start: tuple[int, int] = (
+                    x * space_size[0] + offset[0],
+                    y * space_size[1] + offset[1]
+                )
+            output.append([
+                pygame.Rect(start[0], start[1], space_size[0], space_size[1]),
+                Position(x, y)
+            ])
+    return output
+            
+                
 
 def draw_pieces(window: Surface,
                board: Board,

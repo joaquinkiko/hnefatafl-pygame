@@ -15,6 +15,9 @@ FRAMES_PER_SECOND: int = 30
 CLEAR_COLOR: tuple = (0, 0, 0)
 # Game directories
 BASE_DIR: str = __file__.removesuffix(__file__.split("/")[-1])
+ASSET_DIR: str = f"{BASE_DIR}assets/"
+# Asset paths
+ASSET_GRID: str = f"{ASSET_DIR}grid.png"
 
 def main():
     # Initialize GUI
@@ -23,8 +26,12 @@ def main():
     clock = pygame.time.Clock()
 
     # Setup variables
+    board: Board = Board()
+    is_attacker_turn: bool = True # Attacker always starts
 
     # Load assets
+    grid_texture: Surface = pygame.image.load(ASSET_GRID)
+    grid_texture_size: tuple[int, int] = grid_texture.get_size()
 
     # Main game loop
     while True:
@@ -44,6 +51,9 @@ def main():
         window.fill(CLEAR_COLOR)
 
         # Draw window elements
+        
+        # Draw board
+        draw_board(window, board, grid_texture, grid_texture_size)
 
         # Update the window
         pygame.display.update()
@@ -51,6 +61,25 @@ def main():
         # Slow down simulation
         clock.tick(FRAMES_PER_SECOND)
 
-
+def draw_board(window: Surface,
+               board: Board,
+               texture: Surface,
+               texture_size: tuple[int, int]
+               ) -> None:
+    # Get offset so that board is centered
+    offset: tuple[int, int] = (
+         (window.get_width() - (board.width * texture_size[0])) / 2,
+         (window.get_height() - (board.height * texture_size[1])) / 2
+        )
+    # Draw grid
+    for x in range(board.width):
+            for y in range(board.height):
+                window.blit(
+                    texture,
+                    (
+                        x * texture_size[0] + offset[0],
+                        y * texture_size[1] + offset[1]
+                    )
+                    )
 
 if __name__ == "__main__": main()

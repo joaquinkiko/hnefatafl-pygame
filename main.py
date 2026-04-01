@@ -163,6 +163,10 @@ def get_space_rects(window: Surface,
                     board: Board,
                     texture_sizes: dict[str, tuple[int, int]]
                     ) -> list[tuple[pygame.Rect, Position]]:
+    """
+    Get a list containing Rects and Positions for board spaces.
+    This can be useful for drawing the board and for handling mouse events.
+    """
     output: list[tuple[pygame.Rect, Position]] = []
     # Use "s_empty" texture for base space sizing
     space_size: tuple[int ,int] = texture_sizes["s_empty"]
@@ -204,6 +208,7 @@ def draw_board(window: Surface,
                textures: dict[str, Surface],
                gui_positions: list[tuple[pygame.Rect, Position]]
                ) -> None:
+    """Draw board spaces"""
     for gui_position in gui_positions:
         draw_position: tuple[int, int] = gui_position[0].topleft
         board_position: Position = gui_position[1]
@@ -219,6 +224,7 @@ def draw_pieces(window: Surface,
                textures: dict[str, Surface],
                gui_positions: list[tuple[pygame.Rect, Position]]
                ) -> None:
+    """Draw board pieces"""
     for gui_position in gui_positions:
         draw_position: tuple[int, int] = gui_position[0].topleft
         board_position: Position = gui_position[1]

@@ -13,6 +13,8 @@ WINDOW_FLAGS: int = pygame.RESIZABLE | pygame.SCALED
 FRAMES_PER_SECOND: int = 30
 # Window clear color
 CLEAR_COLOR: tuple = (0, 0, 0)
+COLOR_HINT_SELECTON: pygame.Color = pygame.Color(0, 255, 0)
+COLOR_HINT_VALID_MOVE: pygame.Color = pygame.Color(255, 255, 0)
 # Game directories
 BASE_DIR: str = __file__.removesuffix(__file__.split("/")[-1])
 ASSET_DIR: str = f"{BASE_DIR}assets/"
@@ -142,6 +144,12 @@ def main():
         # Draw window elements
         
         # Draw board
+        if not selected_piece == None:
+            draw_selection_hint(window,
+                                board,
+                                selected_piece,
+                                gui_positions
+                                )
         draw_board(window, board, textures, gui_positions)
         draw_pieces(window, board, textures, gui_positions)
 
@@ -174,6 +182,22 @@ def get_space_rects(window: Surface,
                 Position(x, y)
             ])
     return output
+
+def draw_selection_hint(window: Surface,
+                     board: Board,
+                     selection: Position,
+                     gui_positions: list[tuple[pygame.Rect, Position]],
+                     ) -> None:
+    """Draw color hints for selected piece and valid moves"""
+    valid_moves: list[Position] = board.get_valid_moves(selection)
+    for gui_position in gui_positions:
+        draw_rect: pygame.Rect = gui_position[0]
+        board_position: Position = gui_position[1]
+        
+        if board_position in valid_moves:
+            pygame.draw.rect(window, COLOR_HINT_VALID_MOVE, draw_rect)
+        elif board_position == selection:
+            pygame.draw.rect(window, COLOR_HINT_SELECTON, draw_rect)
 
 def draw_board(window: Surface,
                board: Board,

@@ -25,6 +25,17 @@ ASSET_DEFENDER: str = f"{ASSET_DIR}p_defender.png"
 ASSET_KING: str = f"{ASSET_DIR}p_king.png"
 ASSET_ESCAPE: str = f"{ASSET_DIR}s_escape.png"
 ASSET_THRONE: str = f"{ASSET_DIR}s_throne.png"
+ASSET_FONT_BOARD: str | None = f"{ASSET_DIR}antiquity-print.ttf"
+ASSET_FONT_LOG: str | None = None
+# Board font
+FONT_BOARD_SIZE: int = 12
+FONT_BOARD_COLOR: pygame.Color = pygame.Color(255, 255, 255)
+FONT_BOARD_SPACING: int = 4
+# Log font
+FONT_LOG_SIZE: int = 24
+FONT_LOG_COLOR: pygame.Color = pygame.Color(255, 255, 255)
+FONT_LOG_SPACING: int = 8
+FONT_LOG_TOP_LEFT: tuple[int, int] = (8, 8)
 
 def main():
     # Initialize GUI
@@ -37,6 +48,9 @@ def main():
     selected_piece: Position = None
 
     # Load assets
+    pygame.font.init()
+    font_board: pygame.font.Font = pygame.font.Font(ASSET_FONT_BOARD, FONT_BOARD_SIZE)
+    font_log: pygame.font.Font = pygame.font.Font(ASSET_FONT_LOG, FONT_LOG_SIZE)
     textures: dict[str, Surface] = {
         "p_king": pygame.image.load(ASSET_KING),
         "p_defender": pygame.image.load(ASSET_DEFENDER),
@@ -106,13 +120,57 @@ def main():
                                 gui_positions
                                 )
         draw_board(window, board, textures, gui_positions)
+        draw_board_indice_markers(window, font_board, gui_positions)
         draw_pieces(window, board, textures, gui_positions)
+        draw_board_log(window, board, font_log)
 
         # Update the window
         pygame.display.update()
 
         # Slow down simulation
         clock.tick(FRAMES_PER_SECOND)
+
+def draw_board_log(window: Surface, board: Board, font: pygame.font.Font) -> None:
+    """Draws text log of board turns."""
+    offset: int = 0
+    for line in board.get_complete_turn_log().split("\n"):
+        text_log = font.render(line, False, FONT_LOG_COLOR)
+        window.blit(text_log, (FONT_LOG_TOP_LEFT[0], FONT_LOG_TOP_LEFT[1] + offset))
+        offset += font.get_height() + FONT_LOG_SPACING
+
+def draw_board_indice_markers(window: Surface,
+                              font: pygame.font.Font,
+                              gui_positions: list[tuple[pygame.Rect, Position]],
+                              ) -> None:
+    """Draw letter and number indices along board edges."""
+    for gui_position in gui_positions:
+        rect: pygame.Rect = gui_position[0]
+        position: Position = gui_position[1]
+        if position.row == 0:
+            # Draw number beside
+            string: str = position.get_column_string()
+            text_size: tuple[int, int] = font.size(string)
+            draw_x: int = rect.left - text_size[0] - FONT_BOARD_SPACING
+            draw_y: int = rect.centery - (text_size[1] / 2)
+            text = font.render(string, False, FONT_LOG_COLOR)
+            window.blit(text, (draw_x, draw_y))
+        if position.column == 0:
+            # Draw letter above
+            string: str = position.get_row_string()
+            text_size: tuple[int, int] = font.size(string)
+            draw_x: int = rect.centerx - (text_size[0] / 2)
+            draw_y: int = rect.top - font.get_height() - FONT_BOARD_SPACING
+            text = font.render(string, False, FONT_LOG_COLOR)
+            window.blit(text, (draw_x, draw_y))
+        """
+        draw_position: tuple[int, int] = gui_position[0].topleft
+        board_position: Position = gui_position[1]
+        if board.is_escape(board_position):
+            window.blit(textures["s_escape"], draw_position)
+        elif board.is_restricted(board_position):
+            window.blit(textures["s_throne"], draw_position)
+        else:
+            window.blit(textures["s_empty"], draw_position)"""
 
 def get_space_rects(window: Surface,
                     board: Board,

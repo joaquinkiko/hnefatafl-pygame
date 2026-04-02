@@ -27,6 +27,14 @@ class Position:
             return NotImplemented
         return self.row == other.row and self.column == other.column
 
+    def get_column_string(self) -> str:
+        """Returns string representing just the column."""
+        return str(self.column + 1)
+    
+    def get_row_string(self) -> str:
+        """Returns string representing just the row."""
+        return str(chr(self.row + ord('A')))
+
 
 class Board:
     """A Hnefatafl board with pieces tracked as Position lists"""

@@ -257,7 +257,7 @@ class Board:
 
             sandwich_piece = self.get_piece_at(sandwich)
             if neighbor_piece == "attacker" and sandwich_piece in ("defender", "king")\
-            or neighbor_piece == "defender" and sandwich_piece in ("attacker")\
+            or neighbor_piece == "defender" and sandwich_piece == "attacker"\
             or sandwich_piece is None and (self.is_restricted(sandwich) or self.is_escape(sandwich)):
                 captured.append(neighbor)
 

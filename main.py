@@ -27,6 +27,7 @@ ASSET_ESCAPE: str = f"{ASSET_DIR}s_escape.png"
 ASSET_THRONE: str = f"{ASSET_DIR}s_throne.png"
 ASSET_FONT_BOARD: str | None = f"{ASSET_DIR}antiquity-print.ttf"
 ASSET_FONT_LOG: str | None = None
+ASSET_FONT_STATUS: str | None = f"{ASSET_DIR}antiquity-print.ttf"
 # Board font
 FONT_BOARD_SIZE: int = 12
 FONT_BOARD_COLOR: pygame.Color = pygame.Color(255, 255, 255)
@@ -36,6 +37,13 @@ FONT_LOG_SIZE: int = 24
 FONT_LOG_COLOR: pygame.Color = pygame.Color(255, 255, 255)
 FONT_LOG_SPACING: int = 8
 FONT_LOG_TOP_LEFT: tuple[int, int] = (8, 8)
+# Status font 
+FONT_STATUS_SIZE: int = 16
+FONT_STATUS_COLOR: pygame.Color = pygame.Color(255, 255, 255)
+FONT_STATUS_SPACING: int = 4
+FONT_STATUS_Y_OFFSET: int = 8
+# Should we use antialiasing for fonts
+USE_FONT_AA: bool = False
 
 def main():
     # Initialize GUI
@@ -51,6 +59,7 @@ def main():
     pygame.font.init()
     font_board: pygame.font.Font = pygame.font.Font(ASSET_FONT_BOARD, FONT_BOARD_SIZE)
     font_log: pygame.font.Font = pygame.font.Font(ASSET_FONT_LOG, FONT_LOG_SIZE)
+    font_status: pygame.font.Font = pygame.font.Font(ASSET_FONT_STATUS, FONT_STATUS_SIZE)
     textures: dict[str, Surface] = {
         "p_king": pygame.image.load(ASSET_KING),
         "p_defender": pygame.image.load(ASSET_DEFENDER),
@@ -123,6 +132,7 @@ def main():
         draw_board_indice_markers(window, font_board, gui_positions)
         draw_pieces(window, board, textures, gui_positions)
         draw_board_log(window, board, font_log)
+        daw_board_status(window, board, font_status)
 
         # Update the window
         pygame.display.update()
@@ -134,9 +144,31 @@ def draw_board_log(window: Surface, board: Board, font: pygame.font.Font) -> Non
     """Draws text log of board turns."""
     offset: int = 0
     for line in board.get_complete_turn_log().split("\n"):
-        text_log = font.render(line, False, FONT_LOG_COLOR)
+        text_log = font.render(line, USE_FONT_AA, FONT_LOG_COLOR)
         window.blit(text_log, (FONT_LOG_TOP_LEFT[0], FONT_LOG_TOP_LEFT[1] + offset))
         offset += font.get_height() + FONT_LOG_SPACING
+
+def daw_board_status(window: Surface, board: Board, font: pygame.font.Font) -> None:
+    """Draws whose turn it is, or if game has been won, along with turn number."""
+    string: str = ""
+    if board.has_been_won():
+        string = board.winner.capitalize() + " has won!"
+    else:
+        string = f"Turn {board.get_turn_number()}:\n{board.get_current_player().capitalize()}"
+    offset: int = 0
+    draw_x: int = window.get_width() / 2
+    draw_y: int = window.get_height()\
+                - FONT_STATUS_Y_OFFSET\
+                - (len(string.split("\n")) * font.get_height())
+    for line in string.split("\n"):
+        text_log = font.render(line, USE_FONT_AA, FONT_LOG_COLOR)
+        window.blit(text_log,
+                    (
+                        draw_x - (font.size(line)[0] / 2),
+                        draw_y + offset
+                    )
+                    )
+        offset += font.get_height() + FONT_STATUS_SPACING
 
 def draw_board_indice_markers(window: Surface,
                               font: pygame.font.Font,
@@ -152,7 +184,7 @@ def draw_board_indice_markers(window: Surface,
             text_size: tuple[int, int] = font.size(string)
             draw_x: int = rect.left - text_size[0] - FONT_BOARD_SPACING
             draw_y: int = rect.centery - (text_size[1] / 2)
-            text = font.render(string, False, FONT_LOG_COLOR)
+            text = font.render(string, USE_FONT_AA, FONT_LOG_COLOR)
             window.blit(text, (draw_x, draw_y))
         if position.column == 0:
             # Draw letter above
@@ -160,7 +192,7 @@ def draw_board_indice_markers(window: Surface,
             text_size: tuple[int, int] = font.size(string)
             draw_x: int = rect.centerx - (text_size[0] / 2)
             draw_y: int = rect.top - font.get_height() - FONT_BOARD_SPACING
-            text = font.render(string, False, FONT_LOG_COLOR)
+            text = font.render(string, USE_FONT_AA, FONT_LOG_COLOR)
             window.blit(text, (draw_x, draw_y))
         """
         draw_position: tuple[int, int] = gui_position[0].topleft

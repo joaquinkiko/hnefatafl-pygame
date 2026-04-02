@@ -340,8 +340,13 @@ class Board:
         return not self.winner == None
 
     def get_turn_number(self) -> int:
-        """Returns number of turns played, based off of turn log."""
-        return len(self.turn_log)
+        """
+        Returns number of turns played, based off of turn log.
+        Turns are based off of both Attacker and Defender moving,
+        so 1 or 2 turns recorded in the turn log will both be
+        considered part of the 1st turn.
+        """
+        return int(float(len(self.turn_log) + 1) / 2 + 0.5)
     
     def get_complete_turn_log(self) -> str:
         """

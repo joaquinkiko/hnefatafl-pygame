@@ -52,7 +52,7 @@ def main():
     clock = pygame.time.Clock()
 
     # Setup variables
-    board: Board = Board(defenders=[])
+    board: Board = Board()
     selected_piece: Position = None
 
     # Load assets

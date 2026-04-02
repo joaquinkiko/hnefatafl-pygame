@@ -195,15 +195,6 @@ def draw_board_indice_markers(window: Surface,
             draw_y: int = rect.top - font.get_height() - FONT_BOARD_SPACING
             text = font.render(string, USE_FONT_AA, FONT_LOG_COLOR)
             window.blit(text, (draw_x, draw_y))
-        """
-        draw_position: tuple[int, int] = gui_position[0].topleft
-        board_position: Position = gui_position[1]
-        if board.is_escape(board_position):
-            window.blit(textures["s_escape"], draw_position)
-        elif board.is_restricted(board_position):
-            window.blit(textures["s_throne"], draw_position)
-        else:
-            window.blit(textures["s_empty"], draw_position)"""
 
 def get_space_rects(window: Surface,
                     board: Board,

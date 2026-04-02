@@ -409,17 +409,23 @@ class Board:
         self.turn_log.append(log)
         # Check if opposition has no valid moves
         if self.winner == None:
+            has_valid_move: bool = False
             if self._current_player == "attacker": # Check attacker pieces
                 for piece in self.get_all_pieces():
                     if piece in self.attackers\
                     and not self.get_valid_moves(piece) == []:
-                        winner = "defender"
+                        has_valid_move = True
                         break
             else: # Check defender pieces
                 for piece in self.get_all_pieces():
                     if piece in self.defenders\
                     and not self.get_valid_moves(piece) == []:
-                        winner = "attacker"
+                        has_valid_move = True
                         break
                 if not self.get_valid_moves(self.king) == []:
-                    winner = "attacker"
+                   has_valid_move = True
+            if not has_valid_move:
+                if self._current_player == "attacker":
+                    self.winner = "defender"
+                else:
+                    self.winner = "attacker"

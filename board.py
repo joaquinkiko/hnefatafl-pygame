@@ -90,6 +90,13 @@ class Board:
 
         for position in [self.king] + self.attackers + self.defenders:
             self._assert_in_bounds(position)
+        
+        """If this game has been won, this result will change to 'attacker' or 'defender'"""
+        self.winner: str = None
+        """Will be either 'attacker' or 'defender' depending whos turn it is"""
+        self._current_player = "attacker" # Attacker always starts
+
+        self.turn_log: list[str] = []
 
     def _is_in_bounds(self, position: Position) -> bool:
         """Return True if the position sits within the board's edges"""
@@ -297,3 +304,98 @@ class Board:
 
     def __repr__(self) -> str:
         return f"Board({self.width}x{self.height})"
+
+    def swap_current_player(self) -> None:
+        """
+        Flips current player from 'attacker' to 'defender',
+        or 'defender' to 'attacker'.
+        """
+        if self._current_player == "attacker":
+            self._current_player = "defender"
+        else:
+            self._current_player = "attacker"
+
+    def get_current_player(self) -> str:
+        """Returns 'attacker' or 'defender' depending on whos turn it is."""
+        return self._current_player
+    
+    def is_attacker_turn(self) -> bool:
+        """Returns true if is attacker's turn"""
+        return self._current_player == "attacker"
+
+    def is_defender_turn(self) -> bool:
+        """Returns true if is defender's turn"""
+        return self._current_player == "defender"
+
+    def has_been_won(self) -> bool:
+        """Returns true if game has a winner."""
+        return not self.winner == None
+
+    def get_turn_number(self) -> int:
+        """Returns number of turns played, based off of turn log."""
+        return len(self.turn_log)
+    
+    def get_complete_turn_log(self) -> str:
+        """
+        Returns str combining complete turn log.
+        Every 2 turns are split by a new line.
+        """
+        output: str = ""
+        for n in range(len(self.turn_log)):
+            output += self.turn_log[n]
+            # 2 turns are logged per line
+            if n % 2:
+                output += "\n"
+            else:
+                output += " "
+        # Trim trailing white-spaces
+        output = output.removesuffix("\n")
+        output = output.removesuffix(" ")
+        return output
+
+    def play_turn(self, origin: Position, destination: Position) -> None:
+        """
+        Attempts to make a move if possible. Incrementing turn and
+        recording it to the turn log. Will throw error if move is invalid,
+        or if attempting to move opposing player's piece.
+        """
+        if origin == None or destination == None:
+            return ValueError("Must have both and origin and destination to attempt a move.")
+        if not self._current_player == self.get_piece_at(origin):
+            return ValueError("Cannot make a move with opposing player's piece.")
+        # Move piece if possible
+        if destination in self.get_valid_moves(origin):
+            self.move_piece(origin, destination)
+            # Check captures
+            captures: list[Position] = self.get_captures(destination)
+            for capture in captures:
+                self.remove_piece(capture)
+            # Increment to next turn
+            log: str = f"{origin}-{destination}"
+            for capture in captures:
+                log += f"x{capture}"
+            # Check king capture
+            if self._current_player == "attacker" and self.check_king_capture():
+               self.winner = "attacker"
+            # Check escape
+            if self.king in self.escape_spaces:
+                self.winner = "defender"
+            # Increment turn
+            self.swap_current_player()
+            self.turn_log.append(log)
+            # Check if opposition has no valid moves
+            if self.winner == None:
+                if self._current_player == "attacker": # Check attacker pieces
+                    for piece in self.get_all_pieces():
+                        if piece in self.attackers\
+                        and not self.get_valid_moves(piece) == []:
+                            winner = "defender"
+                            break
+                else: # Check defender pieces
+                    for piece in self.get_all_pieces():
+                        if piece in self.defenders\
+                        and not self.get_valid_moves(piece) == []:
+                            winner = "attacker"
+                            break
+                    if not self.get_valid_moves(self.king) == []:
+                        winner = "attacker"

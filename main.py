@@ -34,10 +34,7 @@ def main():
 
     # Setup variables
     board: Board = Board()
-    is_attacker_turn: bool = True # Attacker always starts
     selected_piece: Position = None
-    winner: str | None = None
-    turn_log: list[str] = []
 
     # Load assets
     textures: dict[str, Surface] = {
@@ -61,72 +58,30 @@ def main():
             match event.type:
                 case pygame.MOUSEBUTTONDOWN:
                     for gui_position in gui_positions:
-                        if not winner == None: continue # Ignore if there's a winner
+                        if board.has_been_won(): continue # Ignore if there's a winner
                         test_rect: pygame.Rect = gui_position[0]
                         if test_rect.collidepoint(event.pos):
                             click_position: Position = gui_position[1]
                             match board.get_piece_at(click_position):
                                 case "attacker":
-                                    if is_attacker_turn:
+                                    if board.is_attacker_turn():
                                         selected_piece = click_position
                                     else:
                                         selected_piece = None
                                 case "defender":
-                                    if not is_attacker_turn:
+                                    if board.is_defender_turn():
                                         selected_piece = click_position
                                     else:
                                         selected_piece = None
                                 case "king":
-                                    if not is_attacker_turn:
+                                    if board.is_defender_turn():
                                         selected_piece = click_position
                                     else:
                                         selected_piece = None
                                 case _:
                                     # See if move can be made
                                     if not selected_piece == None:
-                                        # Move piece if possible
-                                        if click_position in board.get_valid_moves(selected_piece):
-                                            board.move_piece(selected_piece, click_position)
-                                            captures: list[Position] = board.get_captures(click_position)
-                                            # Check captures
-                                            for capture in captures:
-                                                board.remove_piece(capture)
-                                            # Check king capture
-                                            if is_attacker_turn and board.check_king_capture():
-                                                winner = "attacker"
-                                            # Check escape
-                                            if board.king in board.escape_spaces:
-                                                winner = "defender"
-                                            # Increment to next turn
-                                            is_attacker_turn = not is_attacker_turn
-                                            log: str = f"{selected_piece}-{click_position}"
-                                            for capture in captures:
-                                                log += f" x{capture}"
-                                            turn_log.append(log)
-                                            print(log)
-                                            # Check if no valid moves for new turn
-                                            if winner == None:
-                                                has_valid_move: bool = False
-                                                if is_attacker_turn: # Check attacker pieces
-                                                    for piece in board.get_all_pieces():
-                                                        if piece in board.attackers\
-                                                        and not board.get_valid_moves(piece) == []:
-                                                            has_valid_move = True
-                                                            break
-                                                else: # Check defender pieces
-                                                    for piece in board.get_all_pieces():
-                                                        if piece in board.defenders\
-                                                        and not board.get_valid_moves(piece) == []:
-                                                            has_valid_move = True
-                                                            break
-                                                    if not board.get_valid_moves(board.king) == []:
-                                                        has_valid_move = True
-                                                        break
-                                                if not has_valid_move:
-                                                    if is_attacker_turn:
-                                                        winner = "defender"
-                                                    else:
-                                                        winner = "attacker"
+                                        board.play_turn(selected_piece, click_position)
                                         selected_piece = None
 
                 case pygame.KEYDOWN:

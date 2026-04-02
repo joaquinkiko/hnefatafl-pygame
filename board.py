@@ -165,8 +165,12 @@ class Board:
                 candidate = Position(row, column)
                 if self.is_occupied(candidate):
                     break
-                if self.is_restricted(candidate) and piece != "king":
-                    break
+                if self.is_escape(candidate) and piece != "king"\
+                or self.is_restricted(candidate) and piece != "king":
+                    # Moves may pass through restricted spots, but not land on them
+                    row += delta_row
+                    column += delta_column
+                    continue
                 moves.append(candidate)
                 row += delta_row
                 column += delta_column

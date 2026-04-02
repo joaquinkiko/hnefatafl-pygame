@@ -33,10 +33,10 @@ FONT_BOARD_SIZE: int = 12
 FONT_BOARD_COLOR: pygame.Color = pygame.Color(255, 255, 255)
 FONT_BOARD_SPACING: int = 4
 # Log font
-FONT_LOG_SIZE: int = 24
+FONT_LOG_SIZE: int = 18
 FONT_LOG_COLOR: pygame.Color = pygame.Color(255, 255, 255)
 FONT_LOG_SPACING: int = 8
-FONT_LOG_TOP_LEFT: tuple[int, int] = (8, 8)
+FONT_LOG_TOP_LEFT: tuple[int, int] = (4, 4)
 # Status font 
 FONT_STATUS_SIZE: int = 16
 FONT_STATUS_COLOR: pygame.Color = pygame.Color(255, 255, 255)

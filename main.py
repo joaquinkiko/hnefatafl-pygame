@@ -52,7 +52,7 @@ def main():
     clock = pygame.time.Clock()
 
     # Setup variables
-    board: Board = Board()
+    board: Board = Board(defenders=[])
     selected_piece: Position = None
 
     # Load assets
@@ -104,8 +104,9 @@ def main():
                                 case _:
                                     # See if move can be made
                                     if not selected_piece == None:
-                                        board.play_turn(selected_piece, click_position)
-                                        selected_piece = None
+                                        if board.is_valid_move(selected_piece, click_position):
+                                            board.play_turn(selected_piece, click_position)
+                                            selected_piece = None
 
                 case pygame.KEYDOWN:
                     match event.key:

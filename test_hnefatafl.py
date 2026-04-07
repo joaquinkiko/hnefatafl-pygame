@@ -1,5 +1,5 @@
 import pytest
-from board import Board, Position, Piece
+from hnefatafl import Board, Position, Piece
 
 @pytest.fixture
 def board(): return Board()

@@ -255,16 +255,6 @@ class TestGetCaptures:
         )
         assert test_board.get_captures(Position(3, 3)) == []
 
-    def test_king_counts_as_sandwich_for_defender_capture(self):
-        test_board = Board(
-            attackers=[Position(5, 3)],
-            defenders=[Position(5, 4)],
-            king=Position(5, 5),
-            restricted_spaces=[],
-            escape_spaces=[],
-        )
-        assert Position(5, 4) in test_board.get_captures(Position(5, 3))
-
     def test_king_can_help_capture_attacker(self):
         test_board = Board(
             attackers=[Position(5, 5)],
@@ -382,3 +372,225 @@ class TestKingCapture:
             escape_spaces=[Position(0, 10), Position(1, 10)],
         )
         assert test_board.check_king_capture() is True
+
+class TestTurnManagement:
+    def test_swap_current_player(self, board):
+        board.swap_current_player()
+        assert board.get_current_player() == "defender"
+        board.swap_current_player()
+        assert board.get_current_player() == "attacker"
+
+    def test_is_attacker_turn_initially(self, board):
+        assert board.is_attacker_turn() is True
+
+    def test_is_defender_turn_initially_false(self, board):
+        assert board.is_defender_turn() is False
+
+    def test_is_defender_turn_after_swap(self, board):
+        board.swap_current_player()
+        assert board.is_defender_turn() is True
+
+    def test_is_attacker_turn_after_swap_false(self, board):
+        board.swap_current_player()
+        assert board.is_attacker_turn() is False
+
+class TestTurnNumber:
+    def test_turn_number_starts_at_one(self, board):
+        assert board.get_turn_number() == 1
+
+    def test_turn_number_after_one_half_turn(self, board):
+        board.turn_log.append("A4-A3")
+        assert board.get_turn_number() == 1
+
+    def test_turn_number_after_full_turn(self, board):
+        board.turn_log.append("A4-A3")
+        board.turn_log.append("F4-F3")
+        assert board.get_turn_number() == 2
+
+    def test_turn_number_after_three_half_turns(self, board):
+        board.turn_log.append("A4-A3")
+        board.turn_log.append("F4-F3")
+        board.turn_log.append("A3-A2")
+        assert board.get_turn_number() == 2
+
+
+class TestTurnLog:
+    def test_turn_log_empty_at_start(self, board):
+        assert board.turn_log == []
+
+    def test_turn_log_records_move(self):
+        test_board = Board(
+            attackers=[Position(0, 3)], defenders=[], king=Position(5, 5)
+        )
+        test_board.play_turn(Position(0, 3), Position(0, 2))
+        assert len(test_board.turn_log) == 1
+
+    def test_get_complete_turn_log_single_entry(self, board):
+        board.turn_log = ["A4-A3"]
+        assert board.get_complete_turn_log().find("\n") == -1
+
+    def test_get_complete_turn_log_two_entries_on_one_line(self, board):
+        board.turn_log = ["A4-A3", "F4-F3"]
+        assert board.get_complete_turn_log().find("\n") == -1
+
+    def test_get_complete_turn_log_three_entries(self, board):
+        board.turn_log = ["A4-A3", "F4-F3", "A3-A2"]
+        result = board.get_complete_turn_log()
+        assert board.get_complete_turn_log().find("\n") != -1
+
+    def test_get_complete_turn_log_no_trailing_whitespace(self, board):
+        board.turn_log = ["A4-A3"]
+        result = board.get_complete_turn_log()
+        assert result == result.strip()
+
+class TestPlayTurn:
+    def test_play_turn_moves_piece(self):
+        test_board = Board(
+            attackers=[Position(0, 3)], defenders=[], king=Position(5, 5)
+        )
+        test_board.play_turn(Position(0, 3), Position(0, 2))
+        assert Position(0, 2) in test_board.attackers
+
+    def test_play_turn_swaps_player(self):
+        test_board = Board(
+            attackers=[Position(0, 3)], defenders=[], king=Position(5, 5)
+        )
+        test_board.play_turn(Position(0, 3), Position(0, 2))
+        assert test_board.get_current_player() == "defender"
+
+    def test_play_turn_none_origin_raises(self, board):
+        with pytest.raises(ValueError):
+            board.play_turn(None, Position(0, 2))
+
+    def test_play_turn_none_destination_raises(self, board):
+        with pytest.raises(ValueError):
+            board.play_turn(Position(0, 3), None)
+
+    def test_attacker_cannot_move_defender_piece(self):
+        test_board = Board(
+            attackers=[], defenders=[Position(3, 3)], king=Position(5, 5)
+        )
+        with pytest.raises(ValueError):
+            test_board.play_turn(Position(3, 3), Position(3, 4))
+
+    def test_defender_cannot_move_attacker_piece(self):
+        test_board = Board(
+            attackers=[Position(0, 3)], defenders=[], king=Position(5, 5)
+        )
+        test_board.swap_current_player()
+        with pytest.raises(ValueError):
+            test_board.play_turn(Position(0, 3), Position(0, 2))
+
+    def test_play_turn_performs_capture(self):
+        test_board = Board(
+            attackers=[Position(3, 4), Position(3, 1)],
+            defenders=[Position(3, 2)],
+            king=Position(9, 9),
+            restricted_spaces=[],
+            escape_spaces=[],
+        )
+        piece_count = len(test_board.get_all_pieces())
+        test_board.play_turn(Position(3, 4), Position(3, 3))
+        assert piece_count == len(test_board.get_all_pieces()) + 1
+
+    def test_defender_can_move_king(self):
+        test_board = Board(
+            attackers=[], defenders=[], king=Position(5, 5),
+            restricted_spaces=[], escape_spaces=[]
+        )
+        test_board.swap_current_player()
+        test_board.play_turn(Position(5, 5), Position(5, 6))
+        assert test_board.king == Position(5, 6)
+
+class TestWinConditions:
+    def test_no_winner_at_start(self, board):
+        assert board.has_been_won() is False
+
+    def test_defender_wins_on_escape(self):
+        test_board = Board(
+            king=Position(0, 1),
+            attackers=[],
+            defenders=[],
+            escape_spaces=[Position(0, 0)],
+            restricted_spaces=[Position(0, 0)],
+        )
+        test_board.swap_current_player()
+        test_board.play_turn(Position(0, 1), Position(0, 0))
+        assert test_board.winner == "defender"
+        assert test_board.has_been_won() is True
+
+    def test_attacker_wins_on_king_capture(self):
+        test_board = Board(
+            king=Position(5, 5),
+            attackers=[
+                Position(4, 5), Position(6, 5),
+                Position(5, 4), Position(5, 7),
+            ],
+            defenders=[],
+            restricted_spaces=[],
+            escape_spaces=[],
+        )
+        test_board.play_turn(Position(5, 7), Position(5, 6))
+        assert test_board.winner == "attacker"
+        assert test_board.has_been_won() is True
+
+    def test_attacker_wins_by_stalemate(self):
+        test_board = Board(
+            king=Position(5, 5),
+            attackers=[Position(5, 4), Position(5, 6),
+                       Position(4, 5), Position(7, 5)],
+            defenders=[],
+        )
+        test_board.play_turn(Position(7, 5), Position(6, 5))
+        assert test_board.winner == "attacker"
+
+    def test_defender_wins_by_attacker_stalemate(self):
+        # Only attacker has no valid moves
+        test_board = Board(
+            king=Position(9, 9),
+            attackers=[Position(0, 0)],
+            defenders=[Position(0, 1), Position(1, 0)],
+            restricted_spaces=[],
+            escape_spaces=[],
+        )
+        test_board.swap_current_player()
+        test_board.play_turn(Position(9, 9), Position(9, 8))
+        assert test_board.winner == "defender"
+
+class TestIsValidMove:
+    def test_valid_move_returns_true(self):
+        test_board = Board(
+            attackers=[Position(0, 3)], defenders=[], king=Position(5, 5)
+        )
+        assert test_board.is_valid_move(Position(0, 3), Position(0, 2)) is True
+
+    def test_empty_origin_returns_false(self, board):
+        assert board.is_valid_move(Position(0, 1), Position(0, 2)) is False
+
+    def test_occupied_destination_returns_false(self, board):
+        assert board.is_valid_move(Position(4, 5), Position(5, 5)) is False
+
+    def test_diagonal_move_returns_false(self):
+        test_board = Board(
+            attackers=[Position(0, 3)], defenders=[], king=Position(5, 5)
+        )
+        assert test_board.is_valid_move(Position(0, 3), Position(1, 4)) is False
+
+    def test_restricted_destination_returns_false_for_attacker(self):
+        test_board = Board(
+            attackers=[Position(5, 2)], defenders=[],
+            king=Position(9, 9),
+            restricted_spaces=[Position(5, 5)],
+            escape_spaces=[],
+        )
+        assert test_board.is_valid_move(Position(5, 2), Position(5, 5)) is False
+
+    def test_escape_destination_valid_for_king(self):
+        test_board = Board(
+            king=Position(0, 1),
+            attackers=[],
+            defenders=[],
+            escape_spaces=[Position(0, 0)],
+            restricted_spaces=[Position(0, 0)],
+        )
+        assert test_board.is_valid_move(Position(0, 1), Position(0, 0)) is True

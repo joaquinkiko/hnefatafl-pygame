@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from enum import Enum
 
 class Position:
     """A coordinate on the board. Rows use letters, columns use numbers"""
@@ -20,7 +20,7 @@ class Position:
         return f"{chr(self.row + ord('A'))}{self.column + 1}"
     
     def __repr__(self) -> str:
-        return f"Position({self})"
+        return f"Position({self.row}, {self.column})"
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Position):
@@ -35,6 +35,10 @@ class Position:
         """Returns string representing just the row."""
         return str(chr(self.row + ord('A')))
 
+class Piece(Enum):
+    Attacker = "Attacker"
+    Defender = "DEFENDER"
+    King = "KING"
 
 class Board:
     """A Hnefatafl board with pieces tracked as Position lists"""
@@ -124,14 +128,14 @@ class Board:
         """Returns positions of all pieces, both attackers and defenders"""
         return list(self.defenders) + list(self.attackers) + [self.king]
 
-    def get_piece_at(self, position: Position) -> str | None:
+    def get_piece_at(self, position: Position) -> Piece | None:
         """Return 'king', 'attacker', 'defender', or None for piece at given position"""
         if self.king == position:
-            return "king"
+            return Piece.King
         if position in self.attackers:
-            return "attacker"
+            return Piece.Attacker
         if position in self.defenders:
-            return "defender"
+            return Piece.Defender
         return None
 
     def is_occupied(self, position: Position) -> bool:
@@ -165,8 +169,8 @@ class Board:
                 candidate = Position(row, column)
                 if self.is_occupied(candidate):
                     break
-                if self.is_escape(candidate) and piece != "king"\
-                or self.is_restricted(candidate) and piece != "king":
+                if self.is_escape(candidate) and piece != Piece.King\
+                or self.is_restricted(candidate) and piece != Piece.King:
                     # Moves may pass through restricted spots, but not land on them
                     row += delta_row
                     column += delta_column
@@ -195,11 +199,11 @@ class Board:
                 f"{origin} cannot reach {destination}."
             )
 
-        if piece == "king":
+        if piece == Piece.King:
             self.king = destination
-        elif piece == "attacker":
+        elif piece == Piece.Attacker:
             self.attackers[self.attackers.index(origin)] = destination
-        elif piece == "defender":
+        elif piece == Piece.Defender:
             self.defenders[self.defenders.index(origin)] = destination
 
     def remove_piece(self, position: Position) -> None:
@@ -211,13 +215,13 @@ class Board:
         piece = self.get_piece_at(position)
         if piece is None:
             raise ValueError(f"No piece at {position} to remove.")
-        if piece == "king":
+        if piece == Piece.King:
             raise ValueError(
                 "The king cannot be removed."
             )
-        if piece == "attacker":
+        if piece == Piece.Attacker:
             self.attackers.remove(position)
-        elif piece == "defender":
+        elif piece == Piece.Defender:
             self.defenders.remove(position)
 
     def get_captures(self, position: Position) -> list[Position]:
@@ -241,11 +245,11 @@ class Board:
                 continue
 
             neighbor_piece = self.get_piece_at(neighbor)
-            if neighbor_piece is None or neighbor_piece == "king":
+            if neighbor_piece is None or neighbor_piece == Piece.King:
                 continue
-            if piece in ("defender", "king") and neighbor_piece != "attacker":
+            if piece in (Piece.Defender, Piece.King) and neighbor_piece != Piece.Attacker:
                 continue
-            if piece == "attacker" and neighbor_piece != "defender":
+            if piece == Piece.Attacker and neighbor_piece != Piece.Defender:
                 continue
 
             sandwich = Position(
@@ -256,8 +260,8 @@ class Board:
                 continue
 
             sandwich_piece = self.get_piece_at(sandwich)
-            if neighbor_piece == "attacker" and sandwich_piece in ("defender", "king")\
-            or neighbor_piece == "defender" and sandwich_piece == "attacker"\
+            if neighbor_piece == Piece.Attacker and sandwich_piece in (Piece.Defender, Piece.King)\
+            or neighbor_piece == Piece.Defender and sandwich_piece == Piece.Attacker\
             or sandwich_piece is None and (self.is_restricted(sandwich) or self.is_escape(sandwich)):
                 captured.append(neighbor)
 
@@ -279,7 +283,7 @@ class Board:
                 return False
 
             piece = self.get_piece_at(neighbor)
-            is_attacker = piece == "attacker"
+            is_attacker = piece == Piece.Attacker
             is_empty_special = piece is None and (
                 self.is_restricted(neighbor) or self.is_escape(neighbor)
             )
@@ -299,11 +303,11 @@ class Board:
             for column in range(self.width):
                 position = Position(row, column)
                 piece = self.get_piece_at(position)
-                if piece == "king":
+                if piece == Piece.King:
                     character = "K"
-                elif piece == "attacker":
+                elif piece == Piece.Attacker:
                     character = "A"
-                elif piece == "defender":
+                elif piece == Piece.Defender:
                     character = "D"
                 elif self.is_escape(position):
                     character = "E"
@@ -384,10 +388,9 @@ class Board:
         """
         if origin == None or destination == None:
             raise ValueError("Must have both and origin and destination to attempt a move.")
-        if not self._current_player == self.get_piece_at(origin):
-            if not self._current_player == "defender"\
-            and self.get_piece_at(origin) == "king":
-                raise ValueError("Cannot make a move with opposing player's piece.")
+        if self._current_player == "attacker" and self.get_piece_at(origin) != Piece.Attacker\
+        or self._current_player == "defender" and self.get_piece_at(origin) == Piece.Attacker:
+            raise ValueError("Cannot make a move with opposing player's piece.")
         # Move piece
         self.move_piece(origin, destination)
         # Check captures

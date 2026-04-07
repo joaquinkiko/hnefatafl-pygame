@@ -1,5 +1,5 @@
 import pytest
-from board import Board, Position
+from board import Board, Position, Piece
 
 @pytest.fixture
 def board(): return Board()
@@ -59,15 +59,15 @@ class TestBoardInit:
 
 class TestPieceLookups:
     def test_get_piece_at_king(self, board):
-        assert board.get_piece_at(Board.DEFAULT_KING) == "king"
+        assert board.get_piece_at(Board.DEFAULT_KING) == Piece.King
 
     def test_get_piece_at_attacker(self, board):
         for piece in Board.DEFAULT_ATTACKERS:
-            assert board.get_piece_at(piece) == "attacker"
+            assert board.get_piece_at(piece) == Piece.Attacker
 
     def test_get_piece_at_defender(self, board):
         for piece in Board.DEFAULT_DEFENDERS:
-            assert board.get_piece_at(piece) == "defender"
+            assert board.get_piece_at(piece) == Piece.Defender
 
     def test_get_piece_at_empty(self, board):
         assert board.get_piece_at(Position(0, 0)) is None

@@ -3,7 +3,7 @@ import pygame
 from pygame import Surface
 from pygame.locals import *
 import sys
-from board import Board, Position
+from board import Board, Position, Piece
 
 # Window initialization constants
 WINDOW_SIZE: tuple = (640, 480)
@@ -86,17 +86,17 @@ def main():
                         if test_rect.collidepoint(event.pos):
                             click_position: Position = gui_position[1]
                             match board.get_piece_at(click_position):
-                                case "attacker":
+                                case Piece.Attacker:
                                     if board.is_attacker_turn():
                                         selected_piece = click_position
                                     else:
                                         selected_piece = None
-                                case "defender":
+                                case Piece.Defender:
                                     if board.is_defender_turn():
                                         selected_piece = click_position
                                     else:
                                         selected_piece = None
-                                case "king":
+                                case Piece.King:
                                     if board.is_defender_turn():
                                         selected_piece = click_position
                                     else:
@@ -266,11 +266,11 @@ def draw_pieces(window: Surface,
         draw_position: tuple[int, int] = gui_position[0].topleft
         board_position: Position = gui_position[1]
         match board.get_piece_at(board_position):
-            case "attacker":
+            case Piece.Attacker:
                 window.blit(textures["p_attacker"], draw_position)
-            case "defender":
+            case Piece.Defender:
                 window.blit(textures["p_defender"], draw_position)
-            case "king":
+            case Piece.King:
                 window.blit(textures["p_king"], draw_position)
 
 if __name__ == "__main__": main()

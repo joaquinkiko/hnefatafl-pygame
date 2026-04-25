@@ -12,9 +12,9 @@ WINDOW_FLAGS: int = pygame.RESIZABLE | pygame.SCALED
 # Simulation rate
 FRAMES_PER_SECOND: int = 30
 # Window clear color
-CLEAR_COLOR: tuple = (0, 0, 0)
-COLOR_HINT_SELECTON: pygame.Color = pygame.Color(0, 255, 0)
-COLOR_HINT_VALID_MOVE: pygame.Color = pygame.Color(255, 255, 0)
+CLEAR_COLOR: tuple = (60, 19, 33)
+COLOR_HINT_SELECTON: pygame.Color = pygame.Color(169, 64, 7)
+COLOR_HINT_VALID_MOVE: pygame.Color = pygame.Color(210, 176, 76)
 # Game directories
 BASE_DIR: str = __file__.removesuffix(__file__.split("/")[-1])
 ASSET_DIR: str = f"{BASE_DIR}assets/"
@@ -28,14 +28,14 @@ ASSET_THRONE: str = f"{ASSET_DIR}s_throne.png"
 ASSET_ARROW_UP: str = f"{ASSET_DIR}arrow_up.png"
 ASSET_ARROW_DOWN: str = f"{ASSET_DIR}arrow_down.png"
 ASSET_FONT_BOARD: str | None = f"{ASSET_DIR}antiquity-print.ttf"
-ASSET_FONT_LOG: str | None = None
+ASSET_FONT_LOG: str | None =  f"{ASSET_DIR}textmachine_handwriting.ttf"
 ASSET_FONT_STATUS: str | None = f"{ASSET_DIR}antiquity-print.ttf"
 # Board font
 FONT_BOARD_SIZE: int = 12
 FONT_BOARD_COLOR: pygame.Color = pygame.Color(255, 255, 255)
 FONT_BOARD_SPACING: int = 4
 # Log font
-FONT_LOG_SIZE: int = 18
+FONT_LOG_SIZE: int = 8
 FONT_LOG_COLOR: pygame.Color = pygame.Color(255, 255, 255)
 FONT_LOG_SPACING: int = 8
 FONT_LOG_TOP_LEFT: tuple[int, int] = (4, 4)
@@ -46,8 +46,10 @@ FONT_STATUS_SPACING: int = 4
 FONT_STATUS_Y_OFFSET: int = 8
 # Log scroll speed
 LOG_SCROLL_SPEED: int = 5
+# Arrow Spacing
+ARROW_SPACING: int = 8
 # Should we use antialiasing for fonts
-USE_FONT_AA: bool = False
+USE_FONT_AA: bool = True
 
 def main():
     # Initialize GUI
@@ -81,17 +83,17 @@ def main():
     
     gui_positions: list[tuple[pygame.Rect, Position]] = get_space_rects(window, board, texture_sizes)
 
-    arrow_buttons_height: int = max(arrow_up_img.get_size()[1], arrow_down_img.get_size()[1])
+    arrow_buttons_height: int = max(arrow_up_img.get_size()[1], arrow_down_img.get_size()[1]) + ARROW_SPACING
     # Bottom left corner
     arrow_up_rect: pygame.Rect = pygame.Rect(
-        arrow_down_img.get_size()[0],
-        WINDOW_HEIGHT - arrow_up_img.get_size()[1],
+        arrow_down_img.get_size()[0] + ARROW_SPACING * 2,
+        WINDOW_HEIGHT - arrow_up_img.get_size()[1] - ARROW_SPACING,
         arrow_up_img.get_size()[0],
         arrow_up_img.get_size()[1]
         )
     arrow_down_rect: pygame.Rect = pygame.Rect(
-        0,
-        WINDOW_HEIGHT - arrow_up_img.get_size()[1],
+        ARROW_SPACING,
+        WINDOW_HEIGHT - arrow_up_img.get_size()[1] - ARROW_SPACING,
         arrow_down_img.get_size()[0],
         arrow_down_img.get_size()[1]
         )
@@ -300,6 +302,8 @@ def draw_board(window: Surface,
     for gui_position in gui_positions:
         draw_position: tuple[int, int] = gui_position[0].topleft
         board_position: Position = gui_position[1]
+        # Don't draw if space is occupied
+        if board.get_piece_at(board_position) != None: continue
         if board.is_escape(board_position):
             window.blit(textures["s_escape"], draw_position)
         elif board.is_restricted(board_position):

@@ -25,6 +25,8 @@ ASSET_DEFENDER: str = f"{ASSET_DIR}p_defender.png"
 ASSET_KING: str = f"{ASSET_DIR}p_king.png"
 ASSET_ESCAPE: str = f"{ASSET_DIR}s_escape.png"
 ASSET_THRONE: str = f"{ASSET_DIR}s_throne.png"
+ASSET_ARROW_UP: str = f"{ASSET_DIR}arrow_up.png"
+ASSET_ARROW_DOWN: str = f"{ASSET_DIR}arrow_down.png"
 ASSET_FONT_BOARD: str | None = f"{ASSET_DIR}antiquity-print.ttf"
 ASSET_FONT_LOG: str | None = None
 ASSET_FONT_STATUS: str | None = f"{ASSET_DIR}antiquity-print.ttf"
@@ -42,6 +44,8 @@ FONT_STATUS_SIZE: int = 16
 FONT_STATUS_COLOR: pygame.Color = pygame.Color(255, 255, 255)
 FONT_STATUS_SPACING: int = 4
 FONT_STATUS_Y_OFFSET: int = 8
+# Log scroll speed
+LOG_SCROLL_SPEED: int = 5
 # Should we use antialiasing for fonts
 USE_FONT_AA: bool = False
 
@@ -54,6 +58,7 @@ def main():
     # Setup variables
     board: Board = Board()
     selected_piece: Position = None
+    log_scroll_offset: int = 0
 
     # Load assets
     pygame.font.init()
@@ -68,18 +73,50 @@ def main():
         "s_escape": pygame.image.load(ASSET_ESCAPE),
         "s_throne": pygame.image.load(ASSET_THRONE),
     }
+    arrow_up_img: Surface = pygame.image.load(ASSET_ARROW_UP)
+    arrow_down_img: Surface = pygame.image.load(ASSET_ARROW_DOWN)
     texture_sizes: dict[str, tuple[int, int]] = {}
     for key in textures.keys():
         texture_sizes[key] = textures[key].get_size()
     
     gui_positions: list[tuple[pygame.Rect, Position]] = get_space_rects(window, board, texture_sizes)
 
+    arrow_buttons_height: int = max(arrow_up_img.get_size()[1], arrow_down_img.get_size()[1])
+    # Bottom left corner
+    arrow_up_rect: pygame.Rect = pygame.Rect(
+        arrow_down_img.get_size()[0],
+        WINDOW_HEIGHT - arrow_up_img.get_size()[1],
+        arrow_up_img.get_size()[0],
+        arrow_up_img.get_size()[1]
+        )
+    arrow_down_rect: pygame.Rect = pygame.Rect(
+        0,
+        WINDOW_HEIGHT - arrow_up_img.get_size()[1],
+        arrow_down_img.get_size()[0],
+        arrow_down_img.get_size()[1]
+        )
+    # This is how much area we have to display text
+    log_area_height: int = WINDOW_HEIGHT - arrow_buttons_height - FONT_LOG_TOP_LEFT[1] - font_log.get_height()
+
     # Main game loop
     while True:
+        # Calculate scrolling area for log
+        log_lines: list[str] = board.get_complete_turn_log().split("\n")
+        visible_lines: int = max(1, int(log_area_height / (font_log.get_height() + FONT_LOG_SPACING)))
+        max_scroll: int = max(0, (len(log_lines) - visible_lines) * (font_log.get_height() + FONT_LOG_SPACING))
+
         # Handle events
         for event in pygame.event.get():
             match event.type:
                 case pygame.MOUSEBUTTONDOWN:
+                    # Log scroll buttons
+                    if arrow_up_rect.collidepoint(event.pos):
+                        log_scroll_offset = log_scroll_offset - LOG_SCROLL_SPEED
+                        continue
+                    if arrow_down_rect.collidepoint(event.pos):
+                        log_scroll_offset = log_scroll_offset + LOG_SCROLL_SPEED
+                        continue
+                    # Board click
                     for gui_position in gui_positions:
                         if board.has_been_won(): continue # Ignore if there's a winner
                         test_rect: pygame.Rect = gui_position[0]
@@ -107,7 +144,12 @@ def main():
                                         if board.is_valid_move(selected_piece, click_position):
                                             board.play_turn(selected_piece, click_position)
                                             selected_piece = None
-
+                                            log_scroll_offset = max_scroll
+                case pygame.MOUSEWHEEL:
+                    if event.y > 0:
+                        log_scroll_offset = log_scroll_offset - LOG_SCROLL_SPEED
+                    elif event.y < 0:
+                        log_scroll_offset = log_scroll_offset + LOG_SCROLL_SPEED
                 case pygame.KEYDOWN:
                     match event.key:
                         case pygame.K_F11:
@@ -115,7 +157,8 @@ def main():
                 case pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-        # Simulate
+        # Clamp scroll changes made during event collection
+        log_scroll_offset = max(0, min(log_scroll_offset, max_scroll))
 
         # Clear the window
         window.fill(CLEAR_COLOR)
@@ -132,7 +175,9 @@ def main():
         draw_board(window, board, textures, gui_positions)
         draw_board_indice_markers(window, font_board, gui_positions)
         draw_pieces(window, board, textures, gui_positions)
-        draw_board_log(window, board, font_log)
+        draw_board_log(window, board, font_log, log_scroll_offset, log_area_height)
+        window.blit(arrow_up_img, arrow_up_rect.topleft)
+        window.blit(arrow_down_img, arrow_down_rect.topleft)
         daw_board_status(window, board, font_status)
 
         # Update the window
@@ -141,12 +186,18 @@ def main():
         # Slow down simulation
         clock.tick(FRAMES_PER_SECOND)
 
-def draw_board_log(window: Surface, board: Board, font: pygame.font.Font) -> None:
+def draw_board_log(window: Surface,
+                   board: Board,
+                   font: pygame.font.Font,
+                   scroll_offset: int,
+                   area_height: int) -> None:
     """Draws text log of board turns."""
     offset: int = 0
     for line in board.get_complete_turn_log().split("\n"):
+        if FONT_LOG_TOP_LEFT[1] + offset - scroll_offset > area_height:
+            break # Don't overflow
         text_log = font.render(line, USE_FONT_AA, FONT_LOG_COLOR)
-        window.blit(text_log, (FONT_LOG_TOP_LEFT[0], FONT_LOG_TOP_LEFT[1] + offset))
+        window.blit(text_log, (FONT_LOG_TOP_LEFT[0], FONT_LOG_TOP_LEFT[1] + offset - scroll_offset))
         offset += font.get_height() + FONT_LOG_SPACING
 
 def daw_board_status(window: Surface, board: Board, font: pygame.font.Font) -> None:

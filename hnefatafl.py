@@ -95,10 +95,10 @@ class Board:
         self.width: int = width
         self.height: int = height
         self.king: Position = king
-        self.attackers: list[Position] = attackers
-        self.defenders: list[Position] = defenders
-        self.escape_spaces: list[Position] = escape_spaces
-        self.restricted_spaces: list[Position] = restricted_spaces
+        self.attackers: list[Position] = attackers.copy()
+        self.defenders: list[Position] = defenders.copy()
+        self.escape_spaces: list[Position] = escape_spaces.copy()
+        self.restricted_spaces: list[Position] = restricted_spaces.copy()
 
         for position in [self.king] + self.attackers + self.defenders:
             self._assert_in_bounds(position)

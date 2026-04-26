@@ -27,6 +27,7 @@ ASSET_ESCAPE: str = f"{ASSET_DIR}s_escape.png"
 ASSET_THRONE: str = f"{ASSET_DIR}s_throne.png"
 ASSET_ARROW_UP: str = f"{ASSET_DIR}arrow_up.png"
 ASSET_ARROW_DOWN: str = f"{ASSET_DIR}arrow_down.png"
+ASSET_RESET: str = f"{ASSET_DIR}reset.png"
 ASSET_FONT_BOARD: str | None = f"{ASSET_DIR}antiquity-print.ttf"
 ASSET_FONT_LOG: str | None =  f"{ASSET_DIR}textmachine_handwriting.ttf"
 ASSET_FONT_STATUS: str | None = f"{ASSET_DIR}antiquity-print.ttf"
@@ -83,6 +84,7 @@ def main():
     }
     arrow_up_img: Surface = pygame.image.load(ASSET_ARROW_UP)
     arrow_down_img: Surface = pygame.image.load(ASSET_ARROW_DOWN)
+    reset_img: Surface = pygame.image.load(ASSET_RESET)
     texture_sizes: dict[str, tuple[int, int]] = {}
     for key in textures.keys():
         texture_sizes[key] = textures[key].get_size()
@@ -102,6 +104,13 @@ def main():
         WINDOW_HEIGHT - arrow_up_img.get_size()[1] - ARROW_SPACING,
         arrow_down_img.get_size()[0],
         arrow_down_img.get_size()[1]
+        )
+    # Top right corner
+    reset_rect: pygame.Rect = pygame.Rect(
+        WINDOW_WIDTH - reset_img.get_size()[0],
+        0,
+        reset_img.get_size()[0],
+        reset_img.get_size()[1]
         )
     # This is how much area we have to display text
     log_area_height: int = WINDOW_HEIGHT - arrow_buttons_height - FONT_LOG_TOP_LEFT[1] - font_log.get_height()
@@ -134,6 +143,12 @@ def main():
                         continue
                     if arrow_down_rect.collidepoint(event.pos):
                         log_scroll_offset = log_scroll_offset + LOG_SCROLL_SPEED
+                        continue
+                    if reset_rect.collidepoint(event.pos):
+                        # Reset board
+                        selected_piece = None
+                        pygame.mixer.music.play(-1, 0, 0)
+                        board = Board()
                         continue
                     # Board click
                     for gui_position in gui_positions:
@@ -214,6 +229,7 @@ def main():
         draw_board_log(window, board, font_log, log_scroll_offset, log_area_height)
         window.blit(arrow_up_img, arrow_up_rect.topleft)
         window.blit(arrow_down_img, arrow_down_rect.topleft)
+        window.blit(reset_img, reset_rect.topleft)
         daw_board_status(window, board, font_status)
 
         # Update the window

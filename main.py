@@ -245,7 +245,7 @@ def draw_board_log(window: Surface,
                    area_height: int) -> None:
     """Draws text log of board turns."""
     offset: int = 0
-    for line in board.get_complete_turn_log().split("\n"):
+    for line in ("Turn Log:\n" + board.get_complete_turn_log()).split("\n"):
         if FONT_LOG_TOP_LEFT[1] + offset - scroll_offset > area_height:
             break # Don't overflow
         text_log = font.render(line, USE_FONT_AA, FONT_LOG_COLOR)

@@ -30,6 +30,12 @@ ASSET_ARROW_DOWN: str = f"{ASSET_DIR}arrow_down.png"
 ASSET_FONT_BOARD: str | None = f"{ASSET_DIR}antiquity-print.ttf"
 ASSET_FONT_LOG: str | None =  f"{ASSET_DIR}textmachine_handwriting.ttf"
 ASSET_FONT_STATUS: str | None = f"{ASSET_DIR}antiquity-print.ttf"
+ASSET_MUSIC: str = f"{ASSET_DIR}Ancient Library.wav"
+ASSET_SFX_SELECT: str = f"{ASSET_DIR}select.ogg"
+ASSET_SFX_INVALID: str = f"{ASSET_DIR}invalid.ogg"
+ASSET_SFX_MOVE: str = f"{ASSET_DIR}move.ogg"
+ASSET_SFX_CAPTURE: str = f"{ASSET_DIR}capture.ogg"
+ASSET_SFX_WIN: str = f"{ASSET_DIR}win.wav"
 # Board font
 FONT_BOARD_SIZE: int = 12
 FONT_BOARD_COLOR: pygame.Color = pygame.Color(255, 255, 255)
@@ -100,6 +106,17 @@ def main():
     # This is how much area we have to display text
     log_area_height: int = WINDOW_HEIGHT - arrow_buttons_height - FONT_LOG_TOP_LEFT[1] - font_log.get_height()
 
+    # Load audio
+    pygame.mixer.music.load(ASSET_MUSIC)
+    pygame.mixer.music.play(-1, 0, 0)
+    pygame.mixer.music.set_volume(0.5)
+    sfx_select = pygame.mixer.Sound(ASSET_SFX_SELECT)
+    sfx_invalid = pygame.mixer.Sound(ASSET_SFX_INVALID)
+    sfx_move = pygame.mixer.Sound(ASSET_SFX_MOVE)
+    sfx_capture = pygame.mixer.Sound(ASSET_SFX_CAPTURE)
+    sfx_win = pygame.mixer.Sound(ASSET_SFX_WIN)
+
+
     # Main game loop
     while True:
         # Calculate scrolling area for log
@@ -128,25 +145,42 @@ def main():
                                 case Piece.Attacker:
                                     if board.is_attacker_turn():
                                         selected_piece = click_position
+                                        sfx_select.play()
                                     else:
                                         selected_piece = None
+                                        sfx_invalid.play()
                                 case Piece.Defender:
                                     if board.is_defender_turn():
                                         selected_piece = click_position
+                                        sfx_select.play()
                                     else:
                                         selected_piece = None
+                                        sfx_invalid.play()
                                 case Piece.King:
                                     if board.is_defender_turn():
                                         selected_piece = click_position
+                                        sfx_select.play()
                                     else:
                                         selected_piece = None
+                                        sfx_invalid.play()
                                 case _:
                                     # See if move can be made
                                     if not selected_piece == None:
                                         if board.is_valid_move(selected_piece, click_position):
+                                            piece_count: int = len(board.get_all_pieces())
                                             board.play_turn(selected_piece, click_position)
                                             selected_piece = None
                                             log_scroll_offset = max_scroll
+                                            if board.has_been_won():
+                                                sfx_win.play()
+                                            elif piece_count != len(board.get_all_pieces()): # A piece has been captured
+                                                sfx_capture.play()
+                                            else:
+                                                sfx_move.play()
+                                        else:
+                                            sfx_invalid.play()
+                                    else:
+                                        sfx_invalid.play()
                 case pygame.MOUSEWHEEL:
                     if event.y > 0:
                         log_scroll_offset = log_scroll_offset - LOG_SCROLL_SPEED

@@ -1,2 +1,6 @@
 # Ignore python cache
 *__pycache__/*
+# Ignore build files
+*.spec
+build/*
+dist/*

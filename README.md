@@ -30,21 +30,21 @@ python main.py
 
 This project is licensed under the [MIT License](LICENSE).
 
-## Credits
+## Additional Credits
 
 Built with [Pygame](https://www.pygame.org/)
 
-Uses assets by:
+Includes assets by:
 
-- [SciGho](https://ninjikin.itch.io/) under CC-BY 4.0.
+- [SciGho](https://ninjikin.itch.io/)
 
-- [Ben Jones (@Polyducks)](https://polyducks.itch.io/) under Common Sense License.
+- [Ben Jones (@Polyducks)](https://polyducks.itch.io/)
 
-- [HydroGene](https://hydrogene.itch.io/) under CC0.
+- [HydroGene](https://hydrogene.itch.io/)
 
--  [Kronbits](https://kronbits.itch.io/) under CC0.
+- [Kronbits](https://kronbits.itch.io/)
 
--  [Kenney](https://kenney.nl/) under CC0.
+- [Kenney](https://kenney.nl/)
 
 ## Support
 

@@ -46,3 +46,4 @@ The Attacker wins if they capture the King.
 
 If either player is unable to move on their turn, they automatically lose.
 
+**[back](../README.md)**
